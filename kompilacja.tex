@@ -1,0 +1,98 @@
+\documentclass{article}
+\usepackage[T1]{polski}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[mediumspace,mediumqspace,Grey,squaren]{SIunits}
+\usepackage{graphicx}
+\usepackage{filecontents}
+\usepackage{listings}
+
+
+
+\graphicspath{ {./images/} }
+
+\begin{document}
+\title{Kompilacja skrośna dla systemu Lego Mindstorm}   
+\author{Jakub Arnold Postępski} 
+\date{\today}
+
+\maketitle
+
+\begin{abstract}
+	Celem jest przyspieszenie procesu kompilacji dla kostek Lego Mindstorm w laboratorium robotyki. 
+\end{abstract}
+
+\section{Wstęp}
+	Kostki Lego Mindstorm EV3 stosowane w laboratorium mają procesor z rdzeniem ARM926EJ-S (architektura ARM, taktowanie 300 MHz, 64 MB RAM). Stosowany system operacyjny ev3dev (oparty na Debian Wheezy). Komunikacja z kostkami przez SSH i Wi-Fi. System operacyjny zestawu instalowany jest na karcie SD.\\
+	Konfiguacja sprzętowa spowalnia proces użytkowania całego zestawu. Niewydajny proces kompilowania programów w języku C++. Wolne działanie interpretera języka Python. Wolne działanie instalatora oprogramowania apt.\\
+	Przy pomocy środowiska Docker opisano:
+	\begin{itemize}
+		\item metodę przygotowania gotowego OS z już zainstalowanymi pakietami
+		\item proces kompilacji skrośnej
+	\end{itemize}
+	Opisano proces kopiowania gotowego kontenera na kartę SD przy pomocy programu Brickman.
+	
+\section{Docker}
+Docker to środowisko do obsługi kontenerów podobnych w działaniu do wirtualnych maszyn. Możliwe uruchamianie kontenerów z innymi architekturami niż system maszyna gospodarza. Demon dla systemu operacyjnego. Możliowść tworzenia kontenera, zachowania zmodyfikowanego kontenera oraz pobrania gotowego kontenera z dedykowanych repozytoriów. Do raz uruchomionego kontenera można zalogować się wiele razy. Uruchomiony kontener posiada własną etykietę. Obraz może być uruchomiony wiele razy jako różne kontenery.
+
+\section{Operacje na kontenerze Dockera}
+Dla systemu z rodziny Ubuntu. Polecenia dla użytkownika z odpowiednimi uprawnieniami.
+
+\subsection{Instalacja}
+
+\begin{itemize}
+	\item Instalacja: 
+	\begin{lstlisting}
+	apt install docker.io
+	\end{lstlisting}
+	\item Uruchomienie demona: 
+	\begin{lstlisting}
+	service docker.io
+	\end{lstlisting}
+\end{itemize}
+
+\subsection{Uruchomienie kontenera}
+Domyślnie użytkownik: robot, hasło: master
+\begin{itemize}
+	\item Ściągnięcie obrazu kontenera: 
+	\begin{lstlisting}
+	docker pull ev3dev/ev3dev-jessie-ev3-generic
+	\end{lstlisting}
+	\item Nadanie tagu kontenerowi: 
+	\begin{lstlisting}
+	docker tag ev3dev/ev3dev-jessie-ev3-generic ev3
+	\end{lstlisting}
+	\item Uruchomienie i logowanie do kontenera: 
+	\begin{lstlisting}
+	docker run --rm -it ev3 su -l robot
+	\end{lstlisting}
+\end{itemize}
+
+\subsection{Zapis kontenera na karcie}
+Należy poprzedzić ściągnieciem repozytorium
+\begin{lstlisting}
+git clone git://github.com/ev3dev/brickstrap
+\end{lstlisting}
+Skrypt programu w podkatalogu
+\begin{lstlisting}
+brickstrap/src
+\end{lstlisting}
+Dla działającego kontenera tworzy obraz karty SD:
+\begin{lstlisting}
+./brickstrap.sh create-tar ev3ros ev3ros.tar
+./brickstrap.sh create-image ev3ros.tar ev3ros.img
+\end{lstlisting}
+
+Sprawdzenie którym urządzniem jest karta SD:
+\begin{lstlisting}
+fdisk -l
+\end{lstlisting}
+
+Zapis obrazu na kartę SD:
+\begin{lstlisting}
+dd if=ev3ros.img of=/dev/sdb bs=4M
+\end{lstlisting}
+
+
+\end{document}
