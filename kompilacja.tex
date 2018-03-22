@@ -10,67 +10,107 @@
 
 
 
+
 \graphicspath{ {./images/} }
 
 \begin{document}
-\title{Kompilacja skrośna dla systemu Lego Mindstorm}   
+\title{Praca z kontenerami Dockera dla Lego Mindstorms EV3\cite{lego}}   
 \author{Jakub Arnold Postępski} 
 \date{\today}
 
 \maketitle
 
-\begin{abstract}
-	Celem jest przyspieszenie procesu kompilacji dla kostek Lego Mindstorm w laboratorium robotyki. 
-\end{abstract}
-
 \section{Wstęp}
-	Kostki Lego Mindstorm EV3 stosowane w laboratorium mają procesor z rdzeniem ARM926EJ-S (architektura ARM, taktowanie 300 MHz, 64 MB RAM). Stosowany system operacyjny ev3dev (oparty na Debian Wheezy). Komunikacja z kostkami przez SSH i Wi-Fi. System operacyjny zestawu instalowany jest na karcie SD.\\
-	Konfiguacja sprzętowa spowalnia proces użytkowania całego zestawu. Niewydajny proces kompilowania programów w języku C++. Wolne działanie interpretera języka Python. Wolne działanie instalatora oprogramowania apt.\\
-	Przy pomocy środowiska Docker opisano:
-	\begin{itemize}
-		\item metodę przygotowania gotowego OS z już zainstalowanymi pakietami
-		\item proces kompilacji skrośnej
-	\end{itemize}
-	Opisano proces kopiowania gotowego kontenera na kartę SD przy pomocy programu Brickman.
+Kostki Lego Mindstorms EV3\cite{lego} stosowane w laboratorium mają procesor z rdzeniem ARM926EJ-S (architektura ARM, taktowanie 300 MHz, 64 MB RAM). Stosowany system operacyjny ev3dev (oparty na Debian Wheezy). Komunikacja z kostkami przez SSH i Wi-Fi. System operacyjny zestawu instalowany jest na karcie SD.\\
+Konfiguacja sprzętowa spowalnia proces użytkowania całego zestawu. Niewydajny proces kompilowania programów w języku C++. Wolne działanie interpretera języka Python. Wolne działanie instalatora oprogramowania apt.\\
+Przy pomocy środowiska Docker\cite{docker} opisano:
+\begin{itemize}
+\item metodę przygotowania gotowego OS z już zainstalowanymi pakietami
+\item proces kompilacji skrośnej
+\end{itemize}
+Kopiowanie gotowego kontenera na kartę SD przy pomocy programu Brickstrap\cite{brickstrap}.
 	
 \section{Docker}
-Docker to środowisko do obsługi kontenerów podobnych w działaniu do wirtualnych maszyn. Możliwe uruchamianie kontenerów z innymi architekturami niż system maszyna gospodarza. Demon dla systemu operacyjnego. Możliowść tworzenia kontenera, zachowania zmodyfikowanego kontenera oraz pobrania gotowego kontenera z dedykowanych repozytoriów. Do raz uruchomionego kontenera można zalogować się wiele razy. Uruchomiony kontener posiada własną etykietę. Obraz może być uruchomiony wiele razy jako różne kontenery.
+Docker\cite{docker} to środowisko do obsługi kontenerów podobnych w działaniu do wirtualnych maszyn. Możliwe uruchamianie kontenerów z innymi architekturami niż system maszyna gospodarza. Demon dla systemu operacyjnego. Możliowść tworzenia kontenera, zachowania zmodyfikowanego kontenera oraz pobrania gotowego kontenera z dedykowanych repozytoriów. Uruchomiony kontener posiada własną etykietę. Obraz może być uruchomiony wiele razy jako różne kontenery. Do jednego kontenera można uruchomić wiele terminali.
 
 \section{Operacje na kontenerze Dockera}
-Dla systemu z rodziny Ubuntu. Polecenia dla użytkownika z odpowiednimi uprawnieniami.
-
+Dla systemu z rodziny Ubuntu. Polecenia dla użytkownika z odpowiednimi uprawnieniami.\\
 \subsection{Instalacja}
+Instalacja: 
+\begin{lstlisting}
+apt install docker.io
+\end{lstlisting}
+Uruchomienie demona: 
+\begin{lstlisting}
+service docker.io
+\end{lstlisting}
 
-\begin{itemize}
-	\item Instalacja: 
-	\begin{lstlisting}
-	apt install docker.io
-	\end{lstlisting}
-	\item Uruchomienie demona: 
-	\begin{lstlisting}
-	service docker.io
-	\end{lstlisting}
-\end{itemize}
 
 \subsection{Uruchomienie kontenera}
-Domyślnie użytkownik: robot, hasło: master
+Ściągnięcie obrazu kontenera\cite{ev3}: 
+\begin{lstlisting}
+docker pull ev3dev/ev3dev-jessie-ev3-generic
+\end{lstlisting}
+Nadanie tagu obrazowi: 
+\begin{lstlisting}
+docker tag ev3dev/ev3dev-jessie-ev3-generic ev3
+\end{lstlisting}
+Wyświetlenie dostępnych obrazów: 
+\begin{lstlisting}
+docker images
+\end{lstlisting}
+Uruchomienie i logowanie do kontenera: 
+\begin{lstlisting}
+docker run -it --name <nazwa_kontenera> ev3
+\end{lstlisting}
+Dodatkowo, w celu ułatwienia pracy można stosować poniższe:
 \begin{itemize}
-	\item Ściągnięcie obrazu kontenera: 
-	\begin{lstlisting}
-	docker pull ev3dev/ev3dev-jessie-ev3-generic
-	\end{lstlisting}
-	\item Nadanie tagu kontenerowi: 
-	\begin{lstlisting}
-	docker tag ev3dev/ev3dev-jessie-ev3-generic ev3
-	\end{lstlisting}
-	\item Uruchomienie i logowanie do kontenera: 
-	\begin{lstlisting}
-	docker run --rm -it ev3 su -l robot
-	\end{lstlisting}
+\item W nowej konsoli hosta, wyświetlenie uruchomionych kontenerów: 
+\begin{lstlisting}
+docker ps
+\end{lstlisting}
+\item Logowanie do już utworzonego kontenera: 
+\begin{lstlisting}
+docker exec -it <nazwa_kontenera> bash
+\end{lstlisting}
+\item Zabicie kontenera, z systemu hosta: 
+\begin{lstlisting}
+docker kill <nazwa_kontenera>
+\end{lstlisting}
 \end{itemize}
 
+\subsection{Praca z kontenerem}
+Po zalogowaniu do kontenera można wykonywać operacje jak dla maszyny wirtualnej. Aby nie stracić efektów pracy należy zapisać migawkę kontenera z systemu hosta.
+\begin{lstlisting}
+docker commit <tag_obrazu> <nazwa_kontenera> 
+\end{lstlisting}
+Powoduje to utworzenie nowego obrazu. Dzięki temu możemy wytworzyć dowolne modyfikacje systemu (takie jak instalacja oprogramowania) i potem przenieść na kartę SD.\\
+Jeśli kontener zostanie uruchomiony poleceniem \textit{run} z parametrem \textit{-v} 
+\begin{lstlisting}
+docker run -it -v <katalog_hosta>:<katalog_kontenera> 
+--name <nazwa_kontenera> <nazwa_obrazu>
+\end{lstlisting}
+to katalog o danej nazwie zostanie odtworzony w kontenerze. Dzięki temu mamy łatwą możliwość kopiowania plików pomiędzy kontenerem a maszyną hosta. Po zainstalowaniu w kontenerze:
+\begin{lstlisting}
+apt-get install unzip bzip2 build-essential
+\end{lstlisting}
+otrzymujemy możliwość kompilacji skrośnej.
+Dla przykładowego programu, w kontenerze, we współdzielonym katalogu wykonujemy:
+\begin{lstlisting}
+g++ -o hello hello.c
+\end{lstlisting}
+\begin{lstlisting}
+./hello
+\end{lstlisting}
+Następnie jesteśmy w stanie przesłać gotowy program na rzeczywistą kostkę, z systemu hosta. Po przejściu do katalogu współdzielonego:
+\begin{lstlisting}
+scp hello robot@192.168.18.74:~/hello
+\end{lstlisting}
+
+
 \subsection{Zapis kontenera na karcie}
-Należy poprzedzić ściągnieciem repozytorium
+Należy wykonywać w konsoli hosta oraz pamiętać aby wytworzyć nową migawkę obrazu przed zapisem na kartę\\
+Ściągniecie repozytorium:
 \begin{lstlisting}
 git clone git://github.com/ev3dev/brickstrap
 \end{lstlisting}
@@ -78,21 +118,22 @@ Skrypt programu w podkatalogu
 \begin{lstlisting}
 brickstrap/src
 \end{lstlisting}
-Dla działającego kontenera tworzy obraz karty SD:
+Dla kontenera o podanym tagu tworzy obraz karty SD\cite{brickstrap}:
 \begin{lstlisting}
-./brickstrap.sh create-tar ev3ros ev3ros.tar
-./brickstrap.sh create-image ev3ros.tar ev3ros.img
+./brickstrap.sh create-tar <nazwa_obrazu_dockera> ev3.tar
+./brickstrap.sh create-image ev3.tar ev3ros.img
 \end{lstlisting}
-
 Sprawdzenie którym urządzniem jest karta SD:
 \begin{lstlisting}
 fdisk -l
 \end{lstlisting}
-
 Zapis obrazu na kartę SD:
 \begin{lstlisting}
 dd if=ev3ros.img of=/dev/sdb bs=4M
 \end{lstlisting}
+Jeśli hasło nie zostało zmienione, po uruchomieniu kostki należy się zalogować użytkownik: \textit{robot}, hasło \textit{master}
 
+\bibliographystyle{acm}
+\bibliography{bibliography}
 
 \end{document}

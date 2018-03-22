@@ -25,6 +25,5 @@
 *.vrb
 *.synctex.gz
 *.bcf
-*.pdf
 *.run.xml
 !images/
