@@ -49,11 +49,11 @@ service docker.io
 
 
 \subsection{Uruchomienie kontenera}
-Ściągnięcie obrazu kontenera\cite{ev3}: 
+Ściągnięcie obrazu kontenera\cite{docker-library}\cite{ev3}: 
 \begin{lstlisting}
 docker pull ev3dev/ev3dev-jessie-ev3-generic
 \end{lstlisting}
-Nadanie tagu obrazowi: 
+Nadanie tagu obrazowi : 
 \begin{lstlisting}
 docker tag ev3dev/ev3dev-jessie-ev3-generic ev3
 \end{lstlisting}
@@ -81,7 +81,7 @@ docker kill <nazwa_kontenera>
 \end{lstlisting}
 \end{itemize}
 
-\subsection{Praca z kontenerem}
+\subsection{Praca z kontenerem i kompilacja skrośna}
 Po zalogowaniu do kontenera można wykonywać operacje jak dla maszyny wirtualnej. Aby nie stracić efektów pracy należy zapisać migawkę kontenera z systemu hosta.
 \begin{lstlisting}
 docker commit <tag_obrazu> <nazwa_kontenera> 
